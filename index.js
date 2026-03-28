@@ -83,6 +83,8 @@ app.post("/scrim-result", async (req, res) => {
 
     // ── Series end ──────────────────────────────────────────────────────────
     if (data.type === "series_end") {
+      const blueName   = data.blueTeamName   || "Blue";
+      const orangeName = data.orangeTeamName || "Orange";
       const winnerText = data.seriesWinner === "Tied"
         ? "Series ended in a **tie**!"
         : `**${data.seriesWinner}** wins the series!`;
@@ -96,7 +98,7 @@ app.post("/scrim-result", async (req, res) => {
         .setColor(color)
         .setDescription(
           `${winnerText}\n` +
-          `**Final Series Score:** Blue ${data.blueSeriesWins} - ${data.orangeSeriesWins} Orange\n` +
+          `**Final Series Score:** ${blueName} ${data.blueSeriesWins} - ${data.orangeSeriesWins} ${orangeName}\n` +
           `**Games Played:** ${data.gamesPlayed}`
         )
         .setTimestamp();
@@ -123,8 +125,8 @@ app.post("/scrim-result", async (req, res) => {
       .setColor(color)
       .setDescription(
         `${winnerText}\n` +
-        `**Score:** Blue ${data.blueGoals ?? 0} - ${data.orangeGoals ?? 0} Orange\n` +
-        `**Series:** Blue ${data.blueSeriesWins ?? 0} - ${data.orangeSeriesWins ?? 0} Orange`
+        `**Score:** ${blueName} ${data.blueGoals ?? 0} - ${data.orangeGoals ?? 0} ${orangeName}\n` +
+        `**Series:** ${blueName} ${data.blueSeriesWins ?? 0} - ${data.orangeSeriesWins ?? 0} ${orangeName}`
       )
       .setTimestamp();
 
@@ -143,8 +145,8 @@ app.post("/scrim-result", async (req, res) => {
     };
 
     embed.addFields(
-      { name: "🔵 Blue Team", value: formatTeam(bluePlayers), inline: false },
-      { name: "🟠 Orange Team", value: formatTeam(orangePlayers), inline: false }
+      { name: `🔵 ${blueName}`, value: formatTeam(bluePlayers), inline: false },
+      { name: `🟠 ${orangeName}`, value: formatTeam(orangePlayers), inline: false }
     );
 
     await channel.send({ embeds: [embed] });
