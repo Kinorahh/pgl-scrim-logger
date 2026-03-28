@@ -65,5 +65,5 @@ app.post("/scrim-result", async (req, res) => {
 });
 
 const PORT = process.env.PORT;
-app.listen(PORT, () => console.log(`Webhook listening on port ${PORT}`));
+app.listen(PORT, "0.0.0.0", () => console.log(`Webhook listening on port ${PORT}`));
 client.login(TOKEN);
