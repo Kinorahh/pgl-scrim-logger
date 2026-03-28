@@ -107,12 +107,15 @@ app.post("/scrim-result", async (req, res) => {
     }
 
     // ── Match end ────────────────────────────────────────────────────────────
+    const blueName   = data.blueTeamName   || "Blue";
+    const orangeName = data.orangeTeamName || "Orange";
+    
     const winnerText = data.winnerSide === "Unknown"
       ? "Draw / Unknown Result"
-      : `**${data.winnerSide}** wins`;
-
-    const color = data.winnerSide === "Blue" ? 0x3498db
-                : data.winnerSide === "Orange" ? 0xe67e22
+      : `**${data.winnerSide}** wins`;   // winnerSide now already holds the custom name
+    
+    const color = data.winnerSide === blueName   ? 0x3498db
+                : data.winnerSide === orangeName ? 0xe67e22
                 : 0x95a5a6;
 
     const embed = new EmbedBuilder()
