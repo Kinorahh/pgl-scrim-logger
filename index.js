@@ -14,14 +14,18 @@ client.once("ready", () => {
 });
 
 function buildSpreadsheetText(data) {
-  const players = Array.isArray(data.players) ? [...data.players] : [];
+  const bluePlayers   = (data.players || []).filter(p => p.teamNum === 0);
+  const orangePlayers = (data.players || []).filter(p => p.teamNum === 1);
 
-  players.sort((a, b) => {
-    if ((a.teamNum ?? 99) !== (b.teamNum ?? 99)) {
-      return (a.teamNum ?? 99) - (b.teamNum ?? 99);
-    }
-    return (b.matchScore ?? 0) - (a.matchScore ?? 0);
-  });
+  // Sort each team by score descending
+  const sortByScore = arr => [...arr].sort((a, b) => (b.matchScore ?? 0) - (a.matchScore ?? 0));
+
+  // Winning team goes first; fall back to blue-first on draw/unknown
+  const blueWon   = data.winnerSide === (data.blueTeamName   || "Blue");
+  const orangeWon = data.winnerSide === (data.orangeTeamName || "Orange");
+  const orderedPlayers = orangeWon
+    ? [...sortByScore(orangePlayers), ...sortByScore(bluePlayers)]
+    : [...sortByScore(bluePlayers),   ...sortByScore(orangePlayers)];
 
   const rows = [];
 
@@ -40,7 +44,7 @@ function buildSpreadsheetText(data) {
     "OrangeGoals"
   ].join("\t"));
 
-  for (const p of players) {
+  for (const p of orderedPlayers) {
     const teamLabel =
       p.teamNum === 0 ? "Blue" :
       p.teamNum === 1 ? "Orange" :
@@ -111,11 +115,11 @@ app.post("/scrim-result", async (req, res) => {
     // ── Match end ────────────────────────────────────────────────────────────
     const blueName   = data.blueTeamName   || "Blue";
     const orangeName = data.orangeTeamName || "Orange";
-    
+
     const winnerText = data.winnerSide === "Unknown"
       ? "Draw / Unknown Result"
       : `**${data.winnerSide}** wins`;   // winnerSide now already holds the custom name
-    
+
     const color = data.winnerSide === blueName   ? 0x3498db
                 : data.winnerSide === orangeName ? 0xe67e22
                 : 0x95a5a6;
@@ -130,7 +134,7 @@ app.post("/scrim-result", async (req, res) => {
       )
       .setTimestamp();
 
-    const bluePlayers = (data.players || []).filter(p => p.teamNum === 0);
+    const bluePlayers   = (data.players || []).filter(p => p.teamNum === 0);
     const orangePlayers = (data.players || []).filter(p => p.teamNum === 1);
 
     const formatTeam = (players) => {
@@ -144,10 +148,22 @@ app.post("/scrim-result", async (req, res) => {
         .join("\n");
     };
 
-    embed.addFields(
-      { name: `🔵 ${blueName}`, value: formatTeam(bluePlayers), inline: false },
-      { name: `🟠 ${orangeName}`, value: formatTeam(orangePlayers), inline: false }
-    );
+    // Winning team's field goes first; fall back to blue-first on draw/unknown
+    const blueWon   = data.winnerSide === blueName;
+    const orangeWon = data.winnerSide === orangeName;
+
+    if (orangeWon) {
+      embed.addFields(
+        { name: `🟠 ${orangeName}`, value: formatTeam(orangePlayers), inline: false },
+        { name: `🔵 ${blueName}`,   value: formatTeam(bluePlayers),   inline: false }
+      );
+    } else {
+      // Blue won, or draw — blue on top
+      embed.addFields(
+        { name: `🔵 ${blueName}`,   value: formatTeam(bluePlayers),   inline: false },
+        { name: `🟠 ${orangeName}`, value: formatTeam(orangePlayers), inline: false }
+      );
+    }
 
     await channel.send({ embeds: [embed] });
 
