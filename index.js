@@ -1,4 +1,4 @@
-const { Client, GatewayIntentBits, EmbedBuilder } = require("discord.js");
+const { Client, GatewayIntentBits, EmbedBuilder, AttachmentBuilder } = require("discord.js");
 const express = require("express");
 
 const TOKEN = process.env.DISCORD_TOKEN;
@@ -93,6 +93,10 @@ app.post("/scrim-result", async (req, res) => {
     const data = req.body;
     const channel = await client.channels.fetch(CHANNEL_ID);
 
+    if (!channel || !channel.isTextBased()) {
+      throw new Error("Invalid or non-text channel");
+    }
+
     // ── Series end ──────────────────────────────────────────────────────────
     if (data.type === "series_end") {
       const winnerText = data.seriesWinner === "Tied"
@@ -128,16 +132,16 @@ app.post("/scrim-result", async (req, res) => {
                 : 0x95a5a6;
 
     const embed = new EmbedBuilder()
-      .setTitle(`Game ${data.gameInSeries} — ${data.mapKey}`)
+      .setTitle(`Game ${data.gameInSeries} — ${data.mapKey || "Unknown Map"}`)
       .setColor(color)
       .setDescription(
-        `${winnerText} **Score:** ${data.blueGoals} - ${data.orangeGoals}  ` +
-        `**Series:** Blue ${data.blueSeriesWins} - ${data.orangeSeriesWins} Orange`
+        `${winnerText} **Score:** ${data.blueGoals ?? 0} - ${data.orangeGoals ?? 0}  ` +
+        `**Series:** Blue ${data.blueSeriesWins ?? 0} - ${data.orangeSeriesWins ?? 0} Orange`
       )
       .addFields(
         { name: "Map", value: data.mapKey || "Unknown", inline: true },
-        { name: "Team Size", value: `${data.teamSize}v${data.teamSize}`, inline: true },
-        { name: "Best Of", value: String(data.bestOf), inline: true }
+        { name: "Team Size", value: `${data.teamSize ?? "?"}v${data.teamSize ?? "?"}`, inline: true },
+        { name: "Best Of", value: String(data.bestOf ?? "Unknown"), inline: true }
       )
       .setTimestamp();
 
@@ -149,7 +153,7 @@ app.post("/scrim-result", async (req, res) => {
       return [...players]
         .sort((a, b) => (b.matchScore ?? 0) - (a.matchScore ?? 0))
         .map(p =>
-          `**${p.playerName}** — ${p.matchScore ?? 0}pts  ${p.goals ?? 0}G ${p.assists ?? 0}A ${p.saves ?? 0}Sv ${p.shots ?? 0}Sh`
+          `**${p.playerName ?? "Unknown"}** — ${p.matchScore ?? 0}pts  ${p.goals ?? 0}G ${p.assists ?? 0}A ${p.saves ?? 0}Sv ${p.shots ?? 0}Sh`
         )
         .join("\n");
     };
@@ -161,13 +165,18 @@ app.post("/scrim-result", async (req, res) => {
 
     await channel.send({ embeds: [embed] });
 
-    // Send spreadsheet block as a separate plain message for cleaner copy/paste
     const spreadsheetText = buildSpreadsheetText(data);
+    const attachment = new AttachmentBuilder(
+      Buffer.from(spreadsheetText, "utf8"),
+      { name: `scrim-game-${data.gameInSeries || "unknown"}.tsv` }
+    );
+
     await channel.send({
-      content: "📋 Copy → Paste into Excel\n```txt\n" + spreadsheetText + "\n```"
+      content: "📋 Spreadsheet file for Excel",
+      files: [attachment]
     });
 
-    console.log("Sent match-end embed and spreadsheet text");
+    console.log("Sent match-end embed and spreadsheet attachment");
     res.json({ ok: true });
 
   } catch (err) {
