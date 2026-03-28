@@ -94,9 +94,13 @@ app.post("/scrim-result", async (req, res) => {
 
     // Spreadsheet-ready block (paste directly into Sheets/Excel)
     if (data.spreadsheetText) {
+      const spreadsheetBlock = data.spreadsheetText
+        .trimEnd()
+        .replace(/,/g, "\t"); // only do this if your incoming text is CSV-style
+    
       embed.addFields({
         name: "📋 Copy → Paste into Sheets/Excel",
-        value: "```\n" + data.spreadsheetText.trimEnd() + "\n```",
+        value: "```txt\n" + spreadsheetBlock + "\n```",
         inline: false
       });
     }
