@@ -28,15 +28,7 @@ function buildSpreadsheetText(data) {
   rows.push([
     "Game",
     "Winner",
-    "BlueGoals",
-    "OrangeGoals",
     "SeriesScore",
-    "BlueSeriesWins",
-    "OrangeSeriesWins",
-    "Map",
-    "LoggedAt",
-    "TeamSize",
-    "BestOf",
     "Player",
     "Team",
     "Score",
@@ -44,8 +36,8 @@ function buildSpreadsheetText(data) {
     "Assists",
     "Saves",
     "Shots",
-    "ValidHistory",
-    "UniqueId"
+    "BlueGoals",
+    "OrangeGoals"
   ].join("\t"));
 
   for (const p of players) {
@@ -57,15 +49,7 @@ function buildSpreadsheetText(data) {
     rows.push([
       data.gameInSeries ?? "",
       data.winnerSide ?? "",
-      data.blueGoals ?? "",
-      data.orangeGoals ?? "",
       data.seriesScore ?? "",
-      data.blueSeriesWins ?? "",
-      data.orangeSeriesWins ?? "",
-      data.mapKey ?? "",
-      data.loggedAt ?? "",
-      data.teamSize ?? "",
-      data.bestOf ?? "",
       p.playerName ?? "",
       teamLabel,
       p.matchScore ?? "",
@@ -73,8 +57,8 @@ function buildSpreadsheetText(data) {
       p.assists ?? "",
       p.saves ?? "",
       p.shots ?? "",
-      p.validHistory ?? "",
-      p.uniqueId ?? ""
+      data.blueGoals ?? "",
+      data.orangeGoals ?? ""
     ].join("\t"));
   }
 
