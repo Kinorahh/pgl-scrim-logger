@@ -89,8 +89,8 @@ app.post("/scrim-result", async (req, res) => {
         ? "Series ended in a **tie**!"
         : `**${data.seriesWinner}** wins the series!`;
 
-      const color = data.seriesWinner === "Blue" ? 0x3498db
-                  : data.seriesWinner === "Orange" ? 0xe67e22
+      const color = data.seriesWinner === blueName   ? 0x3498db
+                  : data.seriesWinner === orangeName ? 0xe67e22
                   : 0x95a5a6;
 
       const embed = new EmbedBuilder()
@@ -104,7 +104,20 @@ app.post("/scrim-result", async (req, res) => {
         .setTimestamp();
 
       await channel.send({ embeds: [embed] });
-      console.log("Sent series-end embed");
+
+      // Attach combined TSV for the whole series if data was provided.
+      if (data.combinedTsv) {
+        const attachment = new AttachmentBuilder(
+          Buffer.from(data.combinedTsv, "utf8"),
+          { name: `scrim-series-all-games.tsv` }
+        );
+        await channel.send({
+          content: "📋 Combined spreadsheet for all games in this series",
+          files: [attachment]
+        });
+      }
+
+      console.log("Sent series-end embed and combined TSV attachment");
       return res.json({ ok: true });
     }
 
