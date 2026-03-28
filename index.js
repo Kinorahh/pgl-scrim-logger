@@ -14,15 +14,15 @@ client.once("ready", () => {
 });
 
 app.post("/scrim-result", async (req, res) => {
-  // Optional: simple secret check
+  console.log("Incoming request body:", JSON.stringify(req.body));
+  
   const secret = req.headers["x-scrimbot-secret"];
   if (WEBHOOK_SECRET && secret !== WEBHOOK_SECRET) {
     return res.status(401).json({ error: "Unauthorized" });
   }
 
-  const data = req.body;
-
   try {
+    const data = req.body;
     const channel = await client.channels.fetch(CHANNEL_ID);
 
     const winnerText = data.winnerSide === "Unknown"
@@ -34,15 +34,14 @@ app.post("/scrim-result", async (req, res) => {
       .setColor(data.winnerSide === "Blue" ? 0x3498db : data.winnerSide === "Orange" ? 0xe67e22 : 0x95a5a6)
       .setDescription(`${winnerText}\n**Score:** ${data.blueGoals} - ${data.orangeGoals}\n**Series:** Blue ${data.blueSeriesWins} - ${data.orangeSeriesWins} Orange`)
       .addFields(
-        { name: "Map", value: data.mapKey, inline: true },
+        { name: "Map", value: data.mapKey || "Unknown", inline: true },
         { name: "Team Size", value: `${data.teamSize}v${data.teamSize}`, inline: true },
-        { name: "Best Of", value: `${data.bestOf}`, inline: true }
+        { name: "Best Of", value: String(data.bestOf), inline: true }
       )
       .setTimestamp();
 
-    // Add player stats table per team
-    const bluePlayers = data.players.filter(p => p.teamNum === 0);
-    const orangePlayers = data.players.filter(p => p.teamNum === 1);
+    const bluePlayers = (data.players || []).filter(p => p.teamNum === 0);
+    const orangePlayers = (data.players || []).filter(p => p.teamNum === 1);
 
     const formatTeam = (players) =>
       players.length === 0
@@ -57,9 +56,10 @@ app.post("/scrim-result", async (req, res) => {
     );
 
     await channel.send({ embeds: [embed] });
+    console.log("Successfully sent embed to Discord");
     res.json({ ok: true });
   } catch (err) {
-    console.error("Failed to send message:", err);
+    console.error("Handler error:", err);
     res.status(500).json({ error: err.message });
   }
 });
