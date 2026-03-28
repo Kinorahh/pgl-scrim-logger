@@ -96,8 +96,8 @@ app.post("/scrim-result", async (req, res) => {
         .setColor(color)
         .setDescription(
           `${winnerText}\n` +
-          `**Final:** Blue ${data.blueSeriesWins} - ${data.orangeSeriesWins} Orange\n` +
-          `**Games played:** ${data.gamesPlayed}`
+          `**Final Series Score:** Blue ${data.blueSeriesWins} - ${data.orangeSeriesWins} Orange\n` +
+          `**Games Played:** ${data.gamesPlayed}`
         )
         .setTimestamp();
 
@@ -108,24 +108,20 @@ app.post("/scrim-result", async (req, res) => {
 
     // ── Match end ────────────────────────────────────────────────────────────
     const winnerText = data.winnerSide === "Unknown"
-      ? "Draw / Unknown"
-      : `**${data.winnerSide}** wins!`;
+      ? "Draw / Unknown Result"
+      : `**${data.winnerSide}** wins`;
 
     const color = data.winnerSide === "Blue" ? 0x3498db
                 : data.winnerSide === "Orange" ? 0xe67e22
                 : 0x95a5a6;
 
     const embed = new EmbedBuilder()
-      .setTitle(`Game ${data.gameInSeries} — ${data.mapKey || "Unknown Map"}`)
+      .setTitle(`Game ${data.gameInSeries ?? "?"} Result`)
       .setColor(color)
       .setDescription(
-        `${winnerText} **Score:** ${data.blueGoals ?? 0} - ${data.orangeGoals ?? 0}  ` +
+        `${winnerText}\n` +
+        `**Score:** Blue ${data.blueGoals ?? 0} - ${data.orangeGoals ?? 0} Orange\n` +
         `**Series:** Blue ${data.blueSeriesWins ?? 0} - ${data.orangeSeriesWins ?? 0} Orange`
-      )
-      .addFields(
-        { name: "Map", value: data.mapKey || "Unknown", inline: true },
-        { name: "Team Size", value: `${data.teamSize ?? "?"}v${data.teamSize ?? "?"}`, inline: true },
-        { name: "Best Of", value: String(data.bestOf ?? "Unknown"), inline: true }
       )
       .setTimestamp();
 
@@ -134,10 +130,11 @@ app.post("/scrim-result", async (req, res) => {
 
     const formatTeam = (players) => {
       if (players.length === 0) return "No data";
+
       return [...players]
         .sort((a, b) => (b.matchScore ?? 0) - (a.matchScore ?? 0))
         .map(p =>
-          `**${p.playerName ?? "Unknown"}** — ${p.matchScore ?? 0}pts  ${p.goals ?? 0}G ${p.assists ?? 0}A ${p.saves ?? 0}Sv ${p.shots ?? 0}Sh`
+          `**${p.playerName ?? "Unknown"}** — ${p.matchScore ?? 0} pts | ${p.goals ?? 0}G ${p.assists ?? 0}A ${p.saves ?? 0}Sv ${p.shots ?? 0}Sh`
         )
         .join("\n");
     };
