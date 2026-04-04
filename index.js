@@ -6,12 +6,12 @@ const crypto  = require("crypto");
 // Config from Railway environment variables
 // ---------------------------------------------------------------------------
 const TOKEN          = process.env.DISCORD_TOKEN;
-const CHANNEL_ID     = process.env.Channel_ID;
+const CHANNEL_ID     = process.env.CHANNEL_ID;
 const PORT           = process.env.PORT || 3000;
 const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET;
 
 if (!TOKEN || !CHANNEL_ID) {
-  console.error("Missing DISCORD_TOKEN or Channel_ID environment variables.");
+  console.error("Missing DISCORD_TOKEN or CHANNEL_ID environment variables.");
   process.exit(1);
 }
 
