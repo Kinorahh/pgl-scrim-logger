@@ -96,11 +96,10 @@ function buildSeriesCSV(series, players, matches) {
     ["Orange Team", series.orange_name],
     ["Blue Wins", series.blue_wins],
     ["Orange Wins", series.orange_wins],
-    ["Total Games", series.total_games],
     ["Series Winner", series.series_winner],
     [],
     ["Player Totals"],
-    ["Team", "Player", "Score", "Goals", "Assists", "Saves", "Shots", "MVPs"],
+    ["Team", "Player", "Score", "Goals", "Assists", "Saves", "Shots", "MVPs", "Games Played"],
   ];
 
   for (const p of players) {
@@ -113,6 +112,7 @@ function buildSeriesCSV(series, players, matches) {
       p.saves,
       p.shots,
       p.mvp_count ?? 0,
+      series.total_games
     ]);
   }
 
@@ -195,8 +195,8 @@ async function handleGame(body) {
 //
 // Expected JSON body (mirrors save_series_json output):
 // {
-//   "series":  { blue_name, orange_name, blue_wins, orange_wins, total_games, series_winner },
-//   "players": [ { team_key, team_name, name, score, goals, assists, saves, shots, mvp_count } ],
+//   "series":  { blue_name, orange_name, blue_wins, orange_wins, series_winner },
+//   "players": [ { team_key, team_name, name, score, goals, assists, saves, shots, mvp_count, total_games } ],
 //   "matches": [ { game_number?, blue_name, orange_name, blue_goals, orange_goals, winner }, ... ]
 // }
 // ---------------------------------------------------------------------------
